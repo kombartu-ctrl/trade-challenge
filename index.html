@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade Challenge — $1K → $100K | Dynamic Risk-Reward System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #181818;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #f0ede8;
+    --muted: #666560;
+    --muted2: #888580;
+    --green: #22c97a;
+    --green-dim: rgba(34,201,122,0.12);
+    --green-dim2: rgba(34,201,122,0.06);
+    --red: #e84040;
+    --red-dim: rgba(232,64,64,0.12);
+    --amber: #f0a030;
+    --amber-dim: rgba(240,160,48,0.10);
+    --mono: 'DM Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRID BG */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    padding: 48px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-family: var(--sans);
+    font-size: clamp(32px, 6vw, 56px);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+  }
+
+  h1 span.green { color: var(--green); }
+  h1 span.dim { color: var(--muted); }
+
+  .header-meta {
+    text-align: right;
+  }
+
+  .start-date {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--green);
+    border: 1px solid rgba(34,201,122,0.3);
+    border-radius: 20px;
+    padding: 4px 10px;
+    letter-spacing: .06em;
+  }
+
+  .live-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* STAT CARDS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    padding: 20px 20px 18px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .stat-val {
+    font-family: var(--sans);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .stat-val.green { color: var(--green); }
+  .stat-val.red { color: var(--red); }
+  .stat-val.amber { color: var(--amber); }
+
+  .stat-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* PROGRESS BAR */
+  .progress-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 32px;
+  }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 14px;
+  }
+
+  .progress-title {
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .progress-pct {
+    font-family: var(--sans);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: -0.02em;
+  }
+
+  .progress-track {
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--green);
+    transition: width 1s cubic-bezier(.4,0,.2,1);
+    position: relative;
+  }
+
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0;
+    width: 20px; height: 100%;
+    background: rgba(255,255,255,0.4);
+    filter: blur(4px);
+  }
+
+  .progress-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: .04em;
+  }
+
+  /* RULES */
+  .rules-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .rule-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .rule-icon {
+    width: 30px; height: 30px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .rule-icon.g { background: var(--green-dim); color: var(--green); }
+  .rule-icon.a { background: var(--amber-dim); color: var(--amber); }
+  .rule-icon.r { background: var(--red-dim); color: var(--red); }
+
+  .rule-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 3px;
+    letter-spacing: .02em;
+  }
+
+  .rule-desc {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* TRADES TABLE */
+  .trades-section { margin-bottom: 32px; }
+
+  .trades-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .trades-table th {
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .trades-table td {
+    padding: 12px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .trades-table tr:last-child td { border-bottom: none; }
+
+  .trades-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .pair-badge {
+    display: inline-block;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .04em;
+  }
+
+  .dir-long {
+    display: inline-block;
+    background: var(--green-dim);
+    color: var(--green);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 10px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  .dir-short {
+    display: inline-block;
+    background: var(--red-dim);
+    color: var(--red);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 10px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  .pnl-pos { color: var(--green); font-weight: 500; }
+  .pnl-neg { color: var(--red); font-weight: 500; }
+  .pnl-open { color: var(--amber); }
+
+  .status-open {
+    display: inline-flex; align-items: center; gap: 5px;
+    color: var(--amber); font-size: 11px;
+  }
+  .status-open::before {
+    content: ''; width: 5px; height: 5px;
+    border-radius: 50%; background: var(--amber);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .status-win { color: var(--green); font-size: 11px; }
+  .status-loss { color: var(--red); font-size: 11px; }
+
+  /* WEEKLY LOG */
+  .weekly-section { margin-bottom: 32px; }
+
+  .week-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .week-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    cursor: pointer;
+    user-select: none;
+    gap: 12px;
+  }
+
+  .week-header:hover { background: rgba(255,255,255,0.02); }
+
+  .week-num {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .week-range {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .week-pnl {
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .week-body {
+    padding: 0 18px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted2);
+    line-height: 1.7;
+  }
+
+  .week-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 14px 0;
+  }
+
+  .wstat {
+    background: var(--surface2);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+
+  .wstat-label { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .wstat-val { font-size: 15px; font-weight: 500; color: var(--text); }
+
+  /* NO TRADES */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 12px;
+    border: 1px dashed var(--border2);
+    border-radius: 10px;
+  }
+
+  .empty-state .date-tag {
+    display: inline-block;
+    background: var(--amber-dim);
+    color: var(--amber);
+    border-radius: 4px;
+    padding: 3px 10px;
+    font-size: 11px;
+    margin-bottom: 10px;
+    letter-spacing: .06em;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .footer-note {
+    line-height: 1.6;
+    max-width: 500px;
+  }
+
+  .last-updated {
+    text-align: right;
+    letter-spacing: .04em;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .rules-grid { grid-template-columns: 1fr; }
+    .week-stats { grid-template-columns: 1fr 1fr; }
+    header { padding: 32px 0 28px; }
+    .header-meta { text-align: left; }
+    .header-top { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-top">
+      <div>
+        <div class="tag">— Dynamic Risk-Reward System · Trade Challenge</div>
+        <h1>$1.000 <span class="dim">→</span> <span class="green">$100.000</span></h1>
+      </div>
+      <div class="header-meta">
+        <div class="start-date">Başlangıç: 23 Mart 2025</div>
+        <div class="live-badge">
+          <span class="live-dot"></span>
+          AKTİF
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Güncel Bakiye</div>
+      <div class="stat-val green" id="current-balance">$1.000</div>
+      <div class="stat-sub">Başlangıç: $1.000</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Toplam P&L</div>
+      <div class="stat-val" id="total-pnl">$0</div>
+      <div class="stat-sub" id="total-pnl-pct">%0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Win Rate</div>
+      <div class="stat-val" id="win-rate">—</div>
+      <div class="stat-sub" id="wl-record">0W / 0L</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Toplam İşlem</div>
+      <div class="stat-val" id="total-trades">0</div>
+      <div class="stat-sub" id="active-trades">0 açık</div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-section">
+    <div class="progress-header">
+      <span class="progress-title">Hedefe ilerleme — $1K → $100K</span>
+      <span class="progress-pct" id="progress-pct">0.00%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+    </div>
+    <div class="progress-labels">
+      <span>$1.000</span>
+      <span id="progress-mid">$10.000</span>
+      <span>$100.000</span>
+    </div>
+  </div>
+
+  <!-- RULES -->
+  <div style="margin-bottom:32px">
+
+    <div class="section-title">D:RR Kuralları — $1.000 başlangıç sermayesi</div>
+    <div class="rules-grid" style="margin-bottom:12px">
+      <div class="rule-card">
+        <div class="rule-icon g">1R</div>
+        <div>
+          <div class="rule-name">İşlem başına risk: <span id="r1-amount">$100</span> (1R)</div>
+          <div class="rule-desc">Sabit risk birimi · Tüm hesaplamalar 1R üzerinden yapılır</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon r">2R</div>
+        <div>
+          <div class="rule-name">Günlük maksimum zarar: -2R (<span id="daily-limit">$200</span>)</div>
+          <div class="rule-desc">Limite ulaşınca gün kapanır, işlem yapılmaz</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon a">3</div>
+        <div>
+          <div class="rule-name">Günlük maksimum işlem: 3 trade</div>
+          <div class="rule-desc">Sadece kaliteli setup'lara odaklanır, overtrade yok</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon g">↔</div>
+        <div>
+          <div class="rule-name">Esnek RR: 0.5R — 2R</div>
+          <div class="rule-desc">Piyasa koşullarına göre pozisyon alma esnekliği</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Risk yönetimi</div>
+    <div class="rules-grid">
+      <div class="rule-card">
+        <div class="rule-icon g">%80</div>
+        <div>
+          <div class="rule-name">Her %80 bakiye artışında risk güncellenir</div>
+          <div class="rule-desc">Bileşik etki · Büyüyen bakiyeye göre 1R otomatik yükselir</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-icon r">DD</div>
+        <div>
+          <div class="rule-name">-6R drawdown sonrası risk %50 düşürülür</div>
+          <div class="rule-desc">Hesap koruma modu · Toparlanana kadar yarı riskle devam</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TRADES TABLE -->
+  <div class="trades-section">
+    <div class="section-title">İşlem geçmişi</div>
+
+    <div id="trades-container">
+      <!-- İşlem yok durumu -->
+      <div class="empty-state">
+        <div class="date-tag">23 Mart'tan itibaren</div>
+        <div>Henüz işlem girilmedi.<br>Challenge başladığında tüm işlemler burada görünecek.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEEKLY LOG -->
+  <div class="weekly-section">
+    <div class="section-title">Haftalık durum analizi</div>
+
+    <div id="weeks-container">
+      <div class="empty-state">
+        <div class="date-tag">Yakında</div>
+        <div>İlk hafta analizi 30 Mart'ta eklenecek.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-note">
+      Tüm işlemler TP ve SL seviyeleri ile birlikte paylaşılmaktadır.<br>
+      Bu sayfa bir yatırım tavsiyesi değildir.<br>
+      <span style="margin-top:6px;display:inline-block">Anlık işlem takibi için →
+        <a href="https://x.com/traderthechill?s=21&t=7g0oJkHUZcysCibQqM9UoQ"
+           target="_blank"
+           style="color:var(--green);text-decoration:none;border-bottom:1px solid rgba(34,201,122,0.3)">
+          @traderthechill
+        </a>
+      </span>
+    </div>
+    <div class="last-updated">
+      Son güncelleme:<br>
+      <span id="last-updated-date">—</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  // ============================================================
+  // VERİ — Her güncelleme için sadece bu bölümü değiştirin
+  // ============================================================
+
+  const CHALLENGE = {
+    startBalance: 1000,
+    targetBalance: 100000,
+    startDate: "23 Mart 2025",
+    lastUpdated: "23 Mart 2025"
+  };
+
+  // İŞLEMLER — Her yeni işlem için bir satır ekleyin
+  // Durum: "win" | "loss" | "open" | "be" (breakeven)
+  const TRADES = [
+  ];
+
+  // HAFTALIK ANALİZLER
+  const WEEKS = [
+  ];
+
+  // ============================================================
+  // HESAPLAMALAR & RENDER — Dokunmanıza gerek yok
+  // ============================================================
+
+  function calc() {
+    const closed = TRADES.filter(t => t.status !== 'open');
+    // Haftalık özet varsa toplam W/L oradan al
+    const weekWins = WEEKS.reduce((s, w) => s + (w.wins || 0), 0);
+    const weekLosses = WEEKS.reduce((s, w) => s + (w.losses || 0), 0);
+    const weekTrades = WEEKS.reduce((s, w) => s + (w.trades || 0), 0);
+    const wins = WEEKS.length > 0 ? weekWins : closed.filter(t => t.status === 'win').length;
+    const losses = WEEKS.length > 0 ? weekLosses : closed.filter(t => t.status === 'loss').length;
+    const totalTrades = WEEKS.length > 0 ? weekTrades : TRADES.length;
+    const totalPnl = TRADES.reduce((s, t) => s + (t.pnl || 0), 0);
+    // Güncel bakiye: haftalık özet varsa son haftanın bitiş bakiyesini kullan
+    const lastWeek = WEEKS.length > 0 ? WEEKS[WEEKS.length - 1] : null;
+    const currentBalance = lastWeek ? lastWeek.endBalance : CHALLENGE.startBalance + totalPnl;
+    const totalPnlDisplay = currentBalance - CHALLENGE.startBalance;
+    const winRate = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) : null;
+    const openCount = TRADES.filter(t => t.status === 'open').length;
+
+    const logProgress = (b) => {
+      const logMin = Math.log(CHALLENGE.startBalance);
+      const logMax = Math.log(CHALLENGE.targetBalance);
+      const logCur = Math.log(Math.max(b, CHALLENGE.startBalance));
+      return Math.max(0, Math.min(100, ((logCur - logMin) / (logMax - logMin)) * 100));
+    };
+
+    const pct = logProgress(currentBalance);
+
+    return { wins, losses, totalPnl: totalPnlDisplay, currentBalance, winRate, openCount, pct, closedCount: wins + losses, totalTrades };
+  }
+
+  function fmt(n) {
+    const abs = Math.abs(n);
+    const s = abs >= 1000
+      ? '$' + (abs/1000).toFixed(1) + 'K'
+      : '$' + abs.toLocaleString('tr-TR');
+    return n < 0 ? '-' + s : (n > 0 ? '+' + s : s);
+  }
+
+  function fmtFull(n) {
+    return (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString('tr-TR');
+  }
+
+  function render() {
+    const c = calc();
+
+    document.getElementById('current-balance').textContent = fmtFull(c.currentBalance);
+    document.getElementById('current-balance').className = 'stat-val ' + (c.currentBalance >= CHALLENGE.startBalance ? 'green' : 'red');
+
+    const pnlEl = document.getElementById('total-pnl');
+    pnlEl.textContent = (c.totalPnl >= 0 ? '+' : '') + fmtFull(c.totalPnl);
+    pnlEl.className = 'stat-val ' + (c.totalPnl > 0 ? 'green' : c.totalPnl < 0 ? 'red' : '');
+
+    const pnlPct = ((c.totalPnl / CHALLENGE.startBalance) * 100).toFixed(2);
+    document.getElementById('total-pnl-pct').textContent = (c.totalPnl >= 0 ? '+' : '') + pnlPct + '%';
+
+    document.getElementById('win-rate').textContent = c.winRate !== null ? '%' + c.winRate : '—';
+    document.getElementById('win-rate').className = 'stat-val ' + (c.winRate >= 50 ? 'green' : c.winRate !== null ? 'red' : '');
+    document.getElementById('wl-record').textContent = c.wins + 'W / ' + c.losses + 'L';
+
+    document.getElementById('total-trades').textContent = c.totalTrades;
+    document.getElementById('active-trades').textContent = c.openCount + ' açık';
+
+    document.getElementById('progress-pct').textContent = c.pct.toFixed(2) + '%';
+    document.getElementById('progress-fill').style.width = c.pct + '%';
+
+    const r1 = Math.round(c.currentBalance * 0.1);
+    const daily = r1 * 2;
+    document.getElementById('r1-amount').textContent = '$' + r1.toLocaleString('tr-TR');
+    document.getElementById('daily-limit').textContent = '$' + daily.toLocaleString('tr-TR');
+
+    document.getElementById('last-updated-date').textContent = CHALLENGE.lastUpdated;
+
+    renderTrades();
+    renderWeeks();
+  }
+
+  function renderTrades() {
+    const container = document.getElementById('trades-container');
+    if (TRADES.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="date-tag">23 Mart'tan itibaren</div>
+          <div>Henüz işlem girilmedi.<br>Challenge başladığında tüm işlemler burada görünecek.</div>
+        </div>`;
+      return;
+    }
+
+    const rows = [...TRADES].reverse().map(t => {
+      const dirClass = t.dir === 'long' ? 'dir-long' : 'dir-short';
+      const dirLabel = t.dir === 'long' ? 'LONG' : 'SHORT';
+      const pnlClass = t.status === 'open' ? 'pnl-open' : t.pnl > 0 ? 'pnl-pos' : 'pnl-neg';
+      const pnlText = t.status === 'open' ? 'açık' : (t.pnl >= 0 ? '+' : '') + fmtFull(t.pnl);
+      let statusEl = '';
+      if (t.status === 'open') statusEl = '<span class="status-open">Açık</span>';
+      else if (t.status === 'win') statusEl = '<span class="status-win">✓ Win</span>';
+      else if (t.status === 'loss') statusEl = '<span class="status-loss">✗ Loss</span>';
+      else statusEl = '<span style="color:var(--muted);font-size:11px">— BE</span>';
+
+      return `<tr>
+        <td style="color:var(--muted);font-size:11px">${t.date}</td>
+        <td><span class="pair-badge">${t.pair}</span></td>
+        <td><span class="${dirClass}">${dirLabel}</span></td>
+        <td style="color:var(--muted2)">${t.rr}</td>
+        <td style="color:var(--muted2);font-size:11px">TP: ${t.tp.toLocaleString('tr-TR')}</td>
+        <td style="color:var(--muted2);font-size:11px">SL: ${t.sl.toLocaleString('tr-TR')}</td>
+        <td class="${pnlClass}">${pnlText}</td>
+        <td>${statusEl}</td>
+      </tr>`;
+    }).join('');
+
+    container.innerHTML = `
+      <div style="overflow-x:auto">
+        <table class="trades-table">
+          <thead><tr>
+            <th>Tarih</th><th>Parite</th><th>Yön</th><th>RR</th>
+            <th>TP</th><th>SL</th><th>P&L</th><th>Sonuç</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function renderWeeks() {
+    const container = document.getElementById('weeks-container');
+    if (WEEKS.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="date-tag">Yakında</div>
+          <div>İlk hafta analizi 30 Mart'ta eklenecek.</div>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = [...WEEKS].reverse().map(w => {
+      const pnlColor = w.pnl > 0 ? 'var(--green)' : w.pnl < 0 ? 'var(--red)' : 'var(--muted)';
+      const pnlText = (w.pnl >= 0 ? '+' : '') + fmtFull(w.pnl);
+      const wr = w.trades > 0 ? Math.round((w.wins / (w.wins + w.losses)) * 100) : 0;
+      return `
+        <div class="week-card">
+          <div class="week-header" onclick="this.parentElement.querySelector('.week-body').classList.toggle('hidden')">
+            <div>
+              <div class="week-num">Hafta ${w.num}</div>
+              <div class="week-range">${w.range}</div>
+            </div>
+            <div style="text-align:right">
+              <div class="week-pnl" style="color:${pnlColor}">${pnlText}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">Bitiş: $${w.endBalance.toLocaleString('tr-TR')}</div>
+            </div>
+          </div>
+          <div class="week-body">
+            <div class="week-stats">
+              <div class="wstat">
+                <div class="wstat-label">İşlem</div>
+                <div class="wstat-val">${w.trades}</div>
+              </div>
+              <div class="wstat">
+                <div class="wstat-label">Win Rate</div>
+                <div class="wstat-val" style="color:${wr>=50?'var(--green)':'var(--red)'}">%${wr}</div>
+              </div>
+              <div class="wstat">
+                <div class="wstat-label">W / L</div>
+                <div class="wstat-val">${w.wins} / ${w.losses}</div>
+              </div>
+            </div>
+            <div style="margin-top:4px">${w.note}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  render();
+</script>
+</body>
+</html>
